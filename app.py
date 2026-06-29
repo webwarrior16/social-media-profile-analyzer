@@ -58,7 +58,7 @@ class SeleniumScraper:
     def __init__(self):
         self.driver = None
     
-    def init_driver(self):
+        def init_driver(self):
         if not SELENIUM_AVAILABLE:
             return None
             
@@ -70,11 +70,25 @@ class SeleniumScraper:
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-gpu")
         options.add_argument("--window-size=1920,1080")
-        options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.0")
+        options.add_argument("--disable-software-rasterizer")
+        options.add_argument("--disable-features=VizDisplayCompositor")
+        
+        # Streamlit Cloud mate important
+        options.add_argument("--single-process")
+        options.add_argument("--no-zygote")
+        
+        options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36...")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
         
         try:
+            # Streamlit Cloud mate Chrome path set karo
+            import shutil
+            chrome_path = shutil.which("chromium") or shutil.which("chromium-browser") or shutil.which("google-chrome")
+            if chrome_path:
+                options.binary_location = chrome_path
+                
+            # webdriver_manager use karo
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
             driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
