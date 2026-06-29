@@ -1,4 +1,5 @@
-# app.py - YouTube Fix with Selenium for dynamic content
+
+updated_app_py = '''# app.py - YouTube Fix with Selenium for dynamic content
 
 import streamlit as st
 import requests
@@ -6,6 +7,8 @@ from bs4 import BeautifulSoup
 import re
 import json
 import time
+import shutil
+import os
 from urllib.parse import urlparse, urljoin
 from datetime import datetime
 
@@ -58,8 +61,26 @@ class SeleniumScraper:
     def __init__(self):
         self.driver = None
     
-        def init_driver(self):
+    def get_chrome_path(self):
+        """Find Chrome/Chromium binary path for Streamlit Cloud."""
+        paths = [
+            "/usr/bin/chromium",
+            "/usr/bin/chromium-browser",
+            "/usr/bin/google-chrome",
+            "/usr/bin/google-chrome-stable",
+            shutil.which("chromium"),
+            shutil.which("chromium-browser"),
+            shutil.which("google-chrome"),
+            shutil.which("google-chrome-stable")
+        ]
+        for path in paths:
+            if path and os.path.exists(path):
+                return path
+        return None
+    
+    def init_driver(self):
         if not SELENIUM_AVAILABLE:
+            st.error("❌ Selenium not installed. Run: pip install selenium webdriver-manager")
             return None
             
         options = Options()
@@ -69,26 +90,20 @@ class SeleniumScraper:
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-gpu")
-        options.add_argument("--window-size=1920,1080")
         options.add_argument("--disable-software-rasterizer")
-        options.add_argument("--disable-features=VizDisplayCompositor")
-        
-        # Streamlit Cloud mate important
         options.add_argument("--single-process")
         options.add_argument("--no-zygote")
-        
-        options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36...")
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.0")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
         
+        # Set Chrome binary location for Streamlit Cloud
+        chrome_path = self.get_chrome_path()
+        if chrome_path:
+            options.binary_location = chrome_path
+        
         try:
-            # Streamlit Cloud mate Chrome path set karo
-            import shutil
-            chrome_path = shutil.which("chromium") or shutil.which("chromium-browser") or shutil.which("google-chrome")
-            if chrome_path:
-                options.binary_location = chrome_path
-                
-            # webdriver_manager use karo
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
             driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
@@ -473,13 +488,13 @@ class MultiPlatformAnalyzer:
         
         contacts = {'emails': [], 'phones': [], 'websites': []}
         
-        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        email_pattern = r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b'
         contacts['emails'] = list(set(re.findall(email_pattern, text)))
         
-        phone_pattern = r'(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
+        phone_pattern = r'(?:\\+\\d{1,3}[-.\\s]?)?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}'
         contacts['phones'] = list(set(re.findall(phone_pattern, text)))
         
-        web_pattern = r'https?://(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
+        web_pattern = r'https?://(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&//=]*)'
         contacts['websites'] = list(set(re.findall(web_pattern, text)))
         
         return contacts
@@ -521,7 +536,7 @@ class MultiPlatformAnalyzer:
                 if script.string and 'ytInitialData' in script.string:
                     try:
                         # Extract JSON from script
-                        json_match = re.search(r'ytInitialData\s*=\s*({.+?});', script.string, re.DOTALL)
+                        json_match = re.search(r'ytInitialData\\s*=\\s*({.+?});', script.string, re.DOTALL)
                         if json_match:
                             yt_data = json.loads(json_match.group(1))
                             break
@@ -546,9 +561,9 @@ class MultiPlatformAnalyzer:
             
             # YouTube subscriber patterns (from rendered page)
             subscriber_patterns = [
-                r'([\d,.]+[KMBkmb]?)\s*subscribers?',  # 15M subscribers, 6.1K subscribers
-                r'subscribers?\s*[:·]\s*([\d,.]+[KMBkmb]?)',  # subscribers: 15M
-                r'([\d,]+(?:\.\d+)?)\s*subscribers?',  # 15,000,000 subscribers
+                r'([\\d,.]+[KMBkmb]?)\\s*subscribers?',  # 15M subscribers, 6.1K subscribers
+                r'subscribers?\\s*[:·]\\s*([\\d,.]+[KMBkmb]?)',  # subscribers: 15M
+                r'([\\d,]+(?:\\.\\d+)?)\\s*subscribers?',  # 15,000,000 subscribers
             ]
             
             for pattern in subscriber_patterns:
@@ -559,9 +574,9 @@ class MultiPlatformAnalyzer:
             
             # Video count patterns
             video_patterns = [
-                r'([\d,.]+[KMBkmb]?)\s*videos?',  # 6.1K videos
-                r'videos?\s*[:·]\s*([\d,.]+[KMBkmb]?)',
-                r'([\d,]+(?:\.\d+)?)\s*videos?',
+                r'([\\d,.]+[KMBkmb]?)\\s*videos?',  # 6.1K videos
+                r'videos?\\s*[:·]\\s*([\\d,.]+[KMBkmb]?)',
+                r'([\\d,]+(?:\\.\\d+)?)\\s*videos?',
             ]
             
             for pattern in video_patterns:
@@ -573,8 +588,8 @@ class MultiPlatformAnalyzer:
             # View count (total channel views - harder to find)
             # Usually in about page, not main page
             view_patterns = [
-                r'([\d,.]+[KMBkmb]?)\s*views?',  # May appear in about section
-                r'total\s*views?\s*[:·]\s*([\d,.]+[KMBkmb]?)',
+                r'([\\d,.]+[KMBkmb]?)\\s*views?',  # May appear in about section
+                r'total\\s*views?\\s*[:·]\\s*([\\d,.]+[KMBkmb]?)',
             ]
             
             for pattern in view_patterns:
@@ -593,7 +608,7 @@ class MultiPlatformAnalyzer:
                     # Subscriber count from header
                     subscriber_text = c4_tabbed_header.get('subscriberCountText', {}).get('simpleText', '')
                     if subscriber_text:
-                        sub_match = re.search(r'([\d,.]+[KMBkmb]?)', subscriber_text)
+                        sub_match = re.search(r'([\\d,.]+[KMBkmb]?)', subscriber_text)
                         if sub_match:
                             results['subscribers'] = sub_match.group(1)
                     
@@ -617,7 +632,7 @@ class MultiPlatformAnalyzer:
             
             # Extract links from description
             if results['description']:
-                links = re.findall(r'https?://[^\s<>\"{}|\\^`\[\]]+', results['description'])
+                links = re.findall(r'https?://[^\\s<>"{}|\\^`\\[\\]]+', results['description'])
                 results['links'] = list(set(links))
                 
                 # Email from description
@@ -628,18 +643,18 @@ class MultiPlatformAnalyzer:
             if not results['subscribers']:
                 # Look for text that contains numbers followed by K, M, B
                 # and near "subscriber" word
-                sub_texts = soup.find_all(text=re.compile(r'[\d,.]+[KMBkmb]?\s*subscribers?', re.IGNORECASE))
+                sub_texts = soup.find_all(text=re.compile(r'[\\d,.]+[KMBkmb]?\\s*subscribers?', re.IGNORECASE))
                 for text in sub_texts:
-                    match = re.search(r'([\d,.]+[KMBkmb]?)', str(text))
+                    match = re.search(r'([\\d,.]+[KMBkmb]?)', str(text))
                     if match:
                         results['subscribers'] = match.group(1)
                         break
             
             # If still no video count
             if not results['video_count']:
-                vid_texts = soup.find_all(text=re.compile(r'[\d,.]+[KMBkmb]?\s*videos?', re.IGNORECASE))
+                vid_texts = soup.find_all(text=re.compile(r'[\\d,.]+[KMBkmb]?\\s*videos?', re.IGNORECASE))
                 for text in vid_texts:
-                    match = re.search(r'([\d,.]+[KMBkmb]?)', str(text))
+                    match = re.search(r'([\\d,.]+[KMBkmb]?)', str(text))
                     if match:
                         results['video_count'] = match.group(1)
                         break
@@ -647,8 +662,7 @@ class MultiPlatformAnalyzer:
             # Handle extraction
             if not results['handle'] and results['channel_name']:
                 # Try to get from URL or meta
-                handle_match = re.search(r'@(\w+)', url)
-                if handle_match:
+                handle_match = re.search(r'@(
                     results['handle'] = handle_match.group(1)
             
         except Exception as e:
@@ -685,14 +699,14 @@ class MultiPlatformAnalyzer:
             meta_title = soup.find('meta', property='og:title')
             if meta_title:
                 title_content = meta_title.get('content', '')
-                name_match = re.search(r'^([^(]+)\s*\(@', title_content)
+                name_match = re.search(r'^([^(]+)\\s*\\(@', title_content)
                 if name_match:
                     results['full_name'] = name_match.group(1).strip()
             
             meta_desc = soup.find('meta', property='og:description')
             if meta_desc:
                 desc = meta_desc.get('content', '')
-                numbers = re.findall(r'([\d,MK]+)\s*(?:Followers|Following|Posts)', desc)
+                numbers = re.findall(r'([\\d,MK]+)\\s*(?:Followers|Following|Posts)', desc)
                 if len(numbers) >= 3:
                     results['followers'] = numbers[0]
                     results['following'] = numbers[1]
@@ -713,7 +727,7 @@ class MultiPlatformAnalyzer:
             
             if not results['bio'] and meta_desc:
                 desc = meta_desc.get('content', '')
-                bio_match = re.search(r'-\s*See.*?\.\s*(.+)', desc)
+                bio_match = re.search(r'-\\s*See.*?\\.\\s*(.+)', desc)
                 if bio_match:
                     results['bio'] = bio_match.group(1).strip()
             
@@ -725,7 +739,7 @@ class MultiPlatformAnalyzer:
                 business_indicators = ['business', 'shop', 'store', 'official', 'contact']
                 results['is_business'] = any(word in results['bio'].lower() for word in business_indicators)
             
-            link_pattern = r'linktr\.ee/\w+|bit\.ly/\w+|beacons\.ai/\w+'
+            link_pattern = r'linktr\\.ee/\\w+|bit\\.ly/\\w+|beacons\\.ai/\\w+'
             if results['bio']:
                 link_match = re.search(link_pattern, results['bio'])
                 if link_match:
@@ -790,10 +804,10 @@ class MultiPlatformAnalyzer:
             
             # Followers extraction
             follower_patterns = [
-                r'([\d,]+(?:\.\d+)?[KMBkmb]?)\s*followers?',
-                r'followers?\s*[:·]\s*([\d,]+(?:\.\d+)?[KMBkmb]?)',
-                r'([\d,]+(?:\.\d+)?)\s*people\s*follow\s*this',
-                r'([\d,]+(?:\.\d+)?)\s*follower',
+                r'([\\d,]+(?:\\.\\d+)?[KMBkmb]?)\\s*followers?',
+                r'followers?\\s*[:·]\\s*([\\d,]+(?:\\.\\d+)?[KMBkmb]?)',
+                r'([\\d,]+(?:\\.\\d+)?)\\s*people\\s*follow\\s*this',
+                r'([\\d,]+(?:\\.\\d+)?)\\s*follower',
             ]
             
             for pattern in follower_patterns:
@@ -804,9 +818,9 @@ class MultiPlatformAnalyzer:
             
             # Following
             following_patterns = [
-                r'([\d,]+(?:\.\d+)?[KMBkmb]?)\s*following',
-                r'following\s*[:·]\s*([\d,]+(?:\.\d+)?[KMBkmb]?)',
-                r'([\d,]+)\s*people\s*followed',
+                r'([\\d,]+(?:\\.\\d+)?[KMBkmb]?)\\s*following',
+                r'following\\s*[:·]\\s*([\\d,]+(?:\\.\\d+)?[KMBkmb]?)',
+                r'([\\d,]+)\\s*people\\s*followed',
             ]
             
             for pattern in following_patterns:
@@ -825,10 +839,10 @@ class MultiPlatformAnalyzer:
             
             # Address
             address_patterns = [
-                r'(Post\s+Box\s+No\s*\d+[^.]{10,150})',
-                r'(\d+[^,]{5,50}(?:Road|Street|Avenue|Marg)[^,]{5,100}(?:,\s*[A-Za-z\s]+){1,4})',
-                r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?,\s*(?:Gujarat|Maharashtra|Delhi|Rajasthan)[^,]{0,50}(?:,\s*India)?)',
-                r'([A-Za-z\s]+(?:Road|Street|Marg|Nagar|Colony)[^,]{5,80}(?:,\s*[A-Za-z\s]+){1,3})'
+                r'(Post\\s+Box\\s+No\\s*\\d+[^.]{10,150})',
+                r'(\\d+[^,]{5,50}(?:Road|Street|Avenue|Marg)[^,]{5,100}(?:,\\s*[A-Za-z\\s]+){1,4})',
+                r'([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)?,\\s*(?:Gujarat|Maharashtra|Delhi|Rajasthan)[^,]{0,50}(?:,\\s*India)?)',
+                r'([A-Za-z\\s]+(?:Road|Street|Marg|Nagar|Colony)[^,]{5,80}(?:,\\s*[A-Za-z\\s]+){1,3})'
             ]
             
             for pattern in address_patterns:
@@ -852,7 +866,7 @@ class MultiPlatformAnalyzer:
                         break
             
             # Hours
-            hours_match = re.search(r'(?:Hours|Open)[:\s]*([^.]{10,100})', clean_text, re.IGNORECASE)
+            hours_match = re.search(r'(?:Hours|Open)[:\\s]*([^.]{10,100})', clean_text, re.IGNORECASE)
             if hours_match:
                 results['hours'] = hours_match.group(1).strip()
             
@@ -918,15 +932,15 @@ class MultiPlatformAnalyzer:
                 if img_url and 'linkedin.com' not in img_url:
                     results['profile_image'] = img_url
             
-            loc_match = re.search(r'([A-Z][a-z]+(?:,\s*[A-Z][a-z]+)?)\s*(?:Area|Region)', visible_text)
+            loc_match = re.search(r'([A-Z][a-z]+(?:,\\s*[A-Z][a-z]+)?)\\s*(?:Area|Region)', visible_text)
             if loc_match:
                 results['location'] = loc_match.group(1).strip()
             
-            conn_match = re.search(r'(\d+)\+?\s*connections?', visible_text, re.IGNORECASE)
+            conn_match = re.search(r'(\\d+)\\+?\\s*connections?', visible_text, re.IGNORECASE)
             if conn_match:
                 results['connections'] = conn_match.group(1)
             
-            follower_match = re.search(r'([\d,]+(?:\.\d+)?[KMB]?)\s*followers?', visible_text, re.IGNORECASE)
+            follower_match = re.search(r'([\\d,]+(?:\\.\\d+)?[KMB]?)\\s*followers?', visible_text, re.IGNORECASE)
             if follower_match:
                 results['followers'] = follower_match.group(1)
             
@@ -980,19 +994,19 @@ class MultiPlatformAnalyzer:
                 results['phones'] = contacts['phones']
                 
                 address_patterns = [
-                    r'(?:Address|Headquarters|Office|Location)[:\s]*([^.]{15,200})',
-                    r'(\d+[^.]{10,100}(?:Road|Street|Avenue|City|Nagar)[^.]{10,100})'
+                    r'(?:Address|Headquarters|Office|Location)[:\\s]*([^.]{15,200})',
+                    r'(\\d+[^.]{10,100}(?:Road|Street|Avenue|City|Nagar)[^.]{10,100})'
                 ]
                 for pattern in address_patterns:
                     matches = re.findall(pattern, visible_text, re.IGNORECASE)
                     results['addresses'].extend(matches)
                 
                 social_platforms = {
-                    'linkedin': r'linkedin\.com/(?:in|company)/[\w-]+',
-                    'twitter': r'twitter\.com/[\w-]+',
-                    'facebook': r'facebook\.com/[\w.-]+',
-                    'instagram': r'instagram\.com/[\w.]+',
-                    'youtube': r'youtube\.com/(?:c|channel|@)[\w-]+'
+                    'linkedin': r'linkedin\\.com/(?:in|company)/[\\w-]+',
+                    'twitter': r'twitter\\.com/[\\w-]+',
+                    'facebook': r'facebook\\.com/[\\w.-]+',
+                    'instagram': r'instagram\\.com/[\\w.]+',
+                    'youtube': r'youtube\\.com/(?:c|channel|@)[\\w-]+'
                 }
                 
                 for platform, pattern in social_platforms.items():
@@ -1252,4 +1266,11 @@ st.markdown("""
         <b>Note:</b> First run downloads ChromeDriver automatically
     </div>
 """, unsafe_allow_html=True)
+'''
 
+# Save to file
+with open('/mnt/agents/output/app.py', 'w', encoding='utf-8') as f:
+    f.write(updated_app_py)
+
+print("✅ Updated app.py saved successfully!")
+print(f"File size: {len(updated_app_py)} characters")
