@@ -19,10 +19,19 @@ try:
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.common.exceptions import TimeoutException, NoSuchElementException
-    from webdriver_manager.chrome import ChromeDriverManager
     SELENIUM_AVAILABLE = True
 except ImportError:
     SELENIUM_AVAILABLE = False
+
+# Streamlit Cloud par packages.txt thi install thata system binaries no fixed path
+CHROMIUM_BINARY_PATHS = ["/usr/bin/chromium", "/usr/bin/chromium-browser"]
+CHROMEDRIVER_PATHS = ["/usr/bin/chromedriver", "/usr/lib/chromium-browser/chromedriver"]
+
+def find_existing_path(paths):
+    for p in paths:
+        if os.path.exists(p):
+            return p
+    return None
 
 # ============== LIGHT MODE CONFIG ==============
 st.set_page_config(
