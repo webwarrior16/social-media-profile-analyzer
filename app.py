@@ -65,7 +65,7 @@ class SeleniumScraper:
             return None
             
         options = Options()
-        options.add_argument("--headless")
+        options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-blink-features=AutomationControlled")
@@ -75,9 +75,23 @@ class SeleniumScraper:
         options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.0")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
-        
+
+        # Streamlit Cloud (Linux/apt) par chromium binary find karo
+        chromium_path = find_existing_path(CHROMIUM_BINARY_PATHS)
+        chromedriver_path = find_existing_path(CHROMEDRIVER_PATHS)
+
+        if chromium_path:
+            options.binary_location = chromium_path
+
         try:
-            service = Service(ChromeDriverManager().install())
+            if chromedriver_path:
+                # Cloud: system-installed chromedriver use karo (version matched chromium sathe)
+                service = Service(chromedriver_path)
+            else:
+                # Local (Windows/Mac) fallback: webdriver_manager use karo, jo available hoy
+                from webdriver_manager.chrome import ChromeDriverManager
+                service = Service(ChromeDriverManager().install())
+
             driver = webdriver.Chrome(service=service, options=options)
             driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
                 'source': 'Object.defineProperty(navigator, "webdriver", {get: () => undefined})'
