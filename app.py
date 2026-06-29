@@ -60,28 +60,10 @@ class SeleniumScraper:
     def __init__(self):
         self.driver = None
     
-    def get_chrome_path(self):
-        """Find Chrome/Chromium binary path for Streamlit Cloud."""
-        paths = [
-            "/usr/bin/chromium",
-            "/usr/bin/chromium-browser",
-            "/usr/bin/google-chrome",
-            "/usr/bin/google-chrome-stable",
-            shutil.which("chromium"),
-            shutil.which("chromium-browser"),
-            shutil.which("google-chrome"),
-            shutil.which("google-chrome-stable")
-        ]
-        for path in paths:
-            if path and os.path.exists(path):
-                return path
-        return None
-
     def init_driver(self):
         if not SELENIUM_AVAILABLE:
-            st.error("❌ Selenium not installed. Run: pip install selenium webdriver-manager")
             return None
-
+            
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
@@ -89,19 +71,11 @@ class SeleniumScraper:
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-gpu")
-        options.add_argument("--disable-software-rasterizer")
-        options.add_argument("--single-process")
-        options.add_argument("--no-zygote")
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.0")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
-
-        # Set Chrome binary location for Streamlit Cloud
-        chrome_path = self.get_chrome_path()
-        if chrome_path:
-            options.binary_location = chrome_path
-
+        
         try:
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
@@ -113,7 +87,7 @@ class SeleniumScraper:
         except Exception as e:
             st.error(f"❌ ChromeDriver failed: {str(e)}")
             return None
-
+    
     def get_page(self, url, wait_time=10):
         if not self.driver:
             self.init_driver()
