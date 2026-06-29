@@ -1283,4 +1283,3 @@ if analyze_button and profile_url:
                 <b>Note:</b> First run downloads ChromeDriver automatically
             </div>
         """, unsafe_allow_html=True)
-        '''
