@@ -78,6 +78,23 @@ class SeleniumScraper:
                 return path
         return None
     
+       def get_chrome_path(self):
+        """Find Chrome/Chromium binary path for Streamlit Cloud."""
+        paths = [
+            "/usr/bin/chromium",
+            "/usr/bin/chromium-browser",
+            "/usr/bin/google-chrome",
+            "/usr/bin/google-chrome-stable",
+            shutil.which("chromium"),
+            shutil.which("chromium-browser"),
+            shutil.which("google-chrome"),
+            shutil.which("google-chrome-stable")
+        ]
+        for path in paths:
+            if path and os.path.exists(path):
+                return path
+        return None
+    
     def init_driver(self):
         if not SELENIUM_AVAILABLE:
             st.error("❌ Selenium not installed. Run: pip install selenium webdriver-manager")
