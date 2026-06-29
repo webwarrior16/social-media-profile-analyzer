@@ -1102,7 +1102,7 @@ with st.expander("📋 Example URLs"):
         "Facebook (With Address)": "https://facebook.com/VNSGUNIVERSITY",
         "Instagram": "https://instagram.com/nasa",
         "LinkedIn (Limited)": "https://linkedin.com/in/nirbhay-bhuva-749715171",
-        "Company": "https://www.spacex.com"
+        "Company": "https://www.spacex.com"  # ← Fix: .com, not .co
     }
     for name, url in examples.items():
         st.code(f"{name}: {url}", language=None)
