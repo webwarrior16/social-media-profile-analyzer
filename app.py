@@ -7,6 +7,7 @@ import re
 import json
 import time
 import shutil
+import os
 from urllib.parse import urlparse, urljoin
 from datetime import datetime
 
