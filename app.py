@@ -1276,17 +1276,11 @@ if analyze_button and profile_url:
         with st.expander("🔧 View Raw Analysis Data"):
             st.json(results)
 
-st.markdown("""
-    <div class="footer">
-        🔒 Only analyzes publicly available information • Respects platform ToS<br>
-        <b>YouTube:</b> Selenium for dynamic content • <b>LinkedIn:</b> API required • <b>Facebook/Instagram:</b> Selenium automation<br>
-        <b>Note:</b> First run downloads ChromeDriver automatically
-    </div>
-""", unsafe_allow_html=True)
-'''
-
-# Save to file
-
-
-print("✅ Updated app.py saved successfully!")
-print(f"File size: {len(updated_app_py)} characters")
+        st.markdown("""
+            <div class="footer">
+                🔒 Only analyzes publicly available information • Respects platform ToS<br>
+                <b>YouTube:</b> Selenium for dynamic content • <b>LinkedIn:</b> API required • <b>Facebook/Instagram:</b> Selenium automation<br>
+                <b>Note:</b> First run downloads ChromeDriver automatically
+            </div>
+        """, unsafe_allow_html=True)
+        '''
