@@ -20,9 +20,6 @@ try:
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.common.exceptions import TimeoutException, NoSuchElementException
     from webdriver_manager.chrome import ChromeDriverManager
-    from webdriver_manager.core.os_manager import ChromeType
-    service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="149.0.7827.196").install())
-    driver = webdriver.Chrome(service=service, options=options)
     SELENIUM_AVAILABLE = True
 except ImportError:
     SELENIUM_AVAILABLE = False
@@ -63,9 +60,8 @@ class SeleniumScraper:
     def __init__(self):
         self.driver = None
     
-        def init_driver(self):
+    def init_driver(self):
         if not SELENIUM_AVAILABLE:
-            st.error("❌ Selenium not installed. Run: pip install selenium webdriver-manager")
             return None
             
         options = Options()
@@ -75,22 +71,13 @@ class SeleniumScraper:
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-gpu")
-        options.add_argument("--disable-software-rasterizer")
-        options.add_argument("--single-process")
-        options.add_argument("--no-zygote")
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.0")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
         
-        # Set Chrome binary location for Streamlit Cloud
-        chrome_path = self.get_chrome_path()
-        if chrome_path:
-            options.binary_location = chrome_path
-        
         try:
-            from webdriver_manager.core.os_manager import ChromeType
-            service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="149.0.7827.196").install())
+            service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
             driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
                 'source': 'Object.defineProperty(navigator, "webdriver", {get: () => undefined})'
