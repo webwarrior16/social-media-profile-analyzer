@@ -19,9 +19,7 @@ try:
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.common.exceptions import TimeoutException, NoSuchElementException
-    from webdriver_manager.chrome import ChromeDriverManager
-    from webdriver_manager.core.os_manager import ChromeType
-    service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="149.0.7827.196").install())
+    from webdriver_manager.chrome import ChromeDriverManager 
     SELENIUM_AVAILABLE = True
 except ImportError:
     SELENIUM_AVAILABLE = False
