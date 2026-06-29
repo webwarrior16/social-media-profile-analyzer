@@ -1286,8 +1286,7 @@ st.markdown("""
 '''
 
 # Save to file
-with open('/mnt/agents/output/app.py', 'w', encoding='utf-8') as f:
-    f.write(updated_app_py)
+
 
 print("✅ Updated app.py saved successfully!")
 print(f"File size: {len(updated_app_py)} characters")
